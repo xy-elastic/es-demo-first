@@ -10,12 +10,19 @@ import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import sun.nio.ch.Net;
 
 import java.net.InetAddress;
+import java.util.Iterator;
 
 /**
  * @Description 第一个ES程序
@@ -150,6 +157,83 @@ public class FirstElasticSearchTEST {
                 .setTypes("Python")
                 .get();
         System.out.println(">>>>>>>>>>>>>>>" + school);
+    }
+
+    /**
+     * @Description 测试通过ID查询文档，相当于SQL的in
+     * @Author future
+     * @DateTime 2019/10/27 17:23
+     **/
+    @Test
+    public void testFindByIds() {
+
+//        构建查询
+        QueryBuilder queryBuilder = QueryBuilders.idsQuery().addIds("001", "002");
+//        执行查询
+        SearchResponse searchResponse = client.prepareSearch("school")
+//                .setTypes("Python")
+                .setQuery(queryBuilder)
+                .get();
+        //获取结果数据
+        SearchHits hits = searchResponse.getHits();
+        System.out.println("记录数" + hits.getTotalHits());
+
+        //遍历所有的对象
+        Iterator<SearchHit> iterator = hits.iterator();
+
+        while (iterator.hasNext()) {
+            SearchHit next = iterator.next();
+            System.out.println(">>>>>>>>>>>数据有>>>>>>>>>>>>" + next.getType() + next.getId() + ":" + next.getSourceAsString());
+        }
+
+
+    }
+
+    /**
+     * @Description 相当于SQL的条件查询where username="xx"，单个条件
+     * @Author future
+     * @DateTime 2019/10/27 17:58
+     **/
+    @Test
+    public void queryByTerm() {
+        QueryBuilder queryBuilder = QueryBuilders.termQuery("age", "30");
+        SearchResponse searchResponse = client.prepareSearch("school")
+                .setTypes("Java")
+                .setQuery(queryBuilder)
+                .get();
+        SearchHits hits = searchResponse.getHits();
+        System.out.println("结果有" + hits.getTotalHits());
+        Iterator<SearchHit> iterator = hits.iterator();
+        while (iterator.hasNext()) {
+            SearchHit next = iterator.next();
+            System.out.println(next.getType() + next.getId() + ":" + next.getSourceAsString());
+        }
+    }
+
+    /**
+     * @Description 类似SQL Like
+     * @Author future
+     * @DateTime 2019/10/27 19:14
+     **/
+    @Test
+    public void testQueryString() {
+
+        QueryBuilder queryBuilder = QueryBuilders.queryStringQuery("40").defaultField("age");
+//        QueryBuilder queryBuilder = QueryBuilders.queryStringQuery("W").defaultField("gender");
+
+        SearchResponse response = client.prepareSearch("school").setTypes("Java").setQuery(queryBuilder).get();
+
+        SearchHits hits = response.getHits();
+
+        System.out.println(hits.getTotalHits());
+
+        Iterator<SearchHit> iterator = hits.iterator();
+
+        while (iterator.hasNext()) {
+            SearchHit next = iterator.next();
+            System.out.println(next.getType() + next.getId() + ":" + next.getSourceAsString());
+        }
+
     }
 
 
