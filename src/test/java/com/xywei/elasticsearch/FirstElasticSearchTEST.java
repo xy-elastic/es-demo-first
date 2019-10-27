@@ -6,20 +6,16 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.common.xcontent.XContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import sun.nio.ch.Net;
 
 import java.net.InetAddress;
 import java.util.Iterator;
@@ -236,5 +232,40 @@ public class FirstElasticSearchTEST {
 
     }
 
+    /**
+     * @Description 测试分页
+     * @Author future
+     * @DateTime 2019/10/27 23:00
+     **/
+    @Test
+    public void testPage() {
+
+        SearchResponse searchResponse = client.prepareSearch("school")
+                .setTypes("Java")
+                //设置分页
+                .setFrom(0)
+                .setSize(3)
+                .get();
+        SearchHits hits = searchResponse.getHits();
+        System.out.println("所有记录数" + hits.getTotalHits());
+        Iterator<SearchHit> iterator = hits.iterator();
+        while (iterator.hasNext()) {
+            SearchHit next = iterator.next();
+            System.out.println("数据都有：" + next.getType() + "**" + next.getSourceAsString());
+        }
+
+
+    }
+
+
+    /**
+     * @Description 测试高亮显示
+     * @Author future
+     * @DateTime 2019/10/27 23:44
+     **/
+    @Test
+    public void testHighlight() {
+
+    }
 
 }
